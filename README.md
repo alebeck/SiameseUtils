@@ -25,4 +25,4 @@ for x, y in train_loader:
 ```
 
 ## Dataset requirements
-For the SiameseSampler to work, the dataset should have a property `ids` which is an array of length `len(dataset)` and specifies the identity of each element. You might consider shuffling that array to allow for a random train-val split inside the sampler.
+For the SiameseSampler to work, the dataset should have a property `ids` which is an array of length `len(dataset)` and specifies the identity of each element. You might consider shuffling that array to allow for a random train-val split inside the sampler. In addition, `dataset[i]` should return a 2-tuple consisting of the i-th element as well as the id of the i-th element.
