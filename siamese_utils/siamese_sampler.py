@@ -23,12 +23,13 @@ class SiameseSampler(Sampler):
         self.num_ids = num_ids
         self.num_samples = num_samples
         self.ids = np.array(dataset.ids)
-        
-        split = int(validation_size * len(dataset.ids_unique))
+
+        ids_unique = list(set(self.ids))
+        split = int(validation_size * len(ids_unique))
         if validate:
-            self.ids_unique = dataset.ids_unique[:split]
+            self.ids_unique = ids_unique[:split]
         else:
-            self.ids_unique = dataset.ids_unique[split:]
+            self.ids_unique = ids_unique[split:]
             
         self.id_sample_map = {_id : np.where(self.ids == _id)[0] for _id in self.ids_unique}
         
