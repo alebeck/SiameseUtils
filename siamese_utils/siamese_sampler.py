@@ -4,55 +4,55 @@ from torch.utils.data.sampler import Sampler
 
 class SiameseSampler(Sampler):
     """
-    Samples batches containing num_ids identities with num_samples samples each.
-    Thus, the batch size is defined as num_ids * num_samples.
+    Samples batches containing <num_labels> labels with <num_samples> samples per label.
+    Thus, the batch size is defined as num_labels * num_samples.
     
     :param dataset: the dataset to sample over
-    :param num_ids: number of distinct identities to be included in every batch
-    :param num_samples: number of samples for each identity in every batch
+    :param num_labels: number of distinct labels to be included in every batch
+    :param num_samples: number of samples for each label in every batch
     :param validate: use as validation set
-    :param validation_size: fraction of unique ids to use for validation
+    :param validation_size: fraction of unique labels to use for validation
     :param
     """
     
-    def __init__(self, dataset, num_ids, num_samples, validate=False, validation_size=0.2, split_seed=42):
+    def __init__(self, dataset, num_labels, num_samples, validate=False, validation_size=0.2, split_seed=42):
         super(SiameseSampler, self).__init__(dataset)
         
         self.dataset = dataset
-        self.num_ids = num_ids
+        self.num_labels = num_labels
         self.num_samples = num_samples
-        self.ids = np.array(dataset.ids)
+        self.labels = np.array(dataset.labels)
 
-        ids_unique = np.array(list(set(self.ids)))
-        ids_unique = np.sort(ids_unique)  # enforce determinism at this point
+        labels_unique = np.array(list(set(self.labels)))
+        labels_unique = np.sort(labels_unique)  # enforce determinism at this point
 
         np.random.seed(split_seed)
-        np.random.shuffle(ids_unique)
+        np.random.shuffle(labels_unique)
 
-        split = int(validation_size * len(ids_unique))
+        split = int(validation_size * len(labels_unique))
         if validate:
-            self.ids_unique = ids_unique[:split]
+            self.labels_unique = labels_unique[:split]
         else:
-            self.ids_unique = ids_unique[split:]
+            self.labels_unique = labels_unique[split:]
             
-        self.id_sample_map = {_id: np.where(self.ids == _id)[0] for _id in self.ids_unique}
+        self.label_sample_map = {l: np.where(self.labels == l)[0] for l in self.labels_unique}
 
-        self.num_iter = len(self.ids_unique) // num_ids
+        self.num_iter = len(self.labels_unique) // num_labels
         
     def __iter__(self):
-        # every epoch, randomize order in which ids and samples are presented
-        np.random.shuffle(self.ids_unique)
-        for _id in self.id_sample_map:
-            np.random.shuffle(self.id_sample_map[_id])
+        # every epoch, randomize order in which labels and samples are presented
+        np.random.shuffle(self.labels_unique)
+        for label in self.label_sample_map:
+            np.random.shuffle(self.label_sample_map[label])
             
         for i in range(self.num_iter):
             pos = i * self.num_samples
-            ids_batch = self.ids_unique[pos:pos + self.num_ids]
+            labels_batch = self.labels_unique[pos:pos + self.num_labels]
             
             indices = []
-            for _id in ids_batch:
-                replace = len(self.id_sample_map[_id]) < self.num_samples
-                indices += list(np.random.choice(self.id_sample_map[_id], self.num_samples, replace))
+            for label in labels_batch:
+                replace = len(self.label_sample_map[label]) < self.num_samples
+                indices += list(np.random.choice(self.label_sample_map[label], self.num_samples, replace))
                 
             yield indices
             
