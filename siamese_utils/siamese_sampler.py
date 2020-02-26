@@ -1,5 +1,3 @@
-import random
-
 import numpy as np
 from torch.utils.data.sampler import Sampler
 
@@ -10,13 +8,14 @@ class SiameseSampler(Sampler):
     Thus, the batch size is defined as num_ids * num_samples.
     
     :param dataset: the dataset to sample over
-    :param num_ids: number of disctinct identities to be included in one batch
-    :param num_samples: number of samples for each identity
+    :param num_ids: number of distinct identities to be included in every batch
+    :param num_samples: number of samples for each identity in every batch
     :param validate: use as validation set
-    :param validation_size
+    :param validation_size: fraction of unique ids to use for validation
+    :param
     """
     
-    def __init__(self, dataset, num_ids, num_samples, validate=False, validation_size=0.2):
+    def __init__(self, dataset, num_ids, num_samples, validate=False, validation_size=0.2, split_seed=42):
         super(SiameseSampler, self).__init__(dataset)
         
         self.dataset = dataset
@@ -24,22 +23,27 @@ class SiameseSampler(Sampler):
         self.num_samples = num_samples
         self.ids = np.array(dataset.ids)
 
-        ids_unique = list(set(self.ids))
+        ids_unique = np.array(list(set(self.ids)))
+        ids_unique = np.sort(ids_unique)  # enforce determinism at this point
+
+        np.random.seed(split_seed)
+        np.random.shuffle(ids_unique)
+
         split = int(validation_size * len(ids_unique))
         if validate:
             self.ids_unique = ids_unique[:split]
         else:
             self.ids_unique = ids_unique[split:]
             
-        self.id_sample_map = {_id : np.where(self.ids == _id)[0] for _id in self.ids_unique}
-        
+        self.id_sample_map = {_id: np.where(self.ids == _id)[0] for _id in self.ids_unique}
+
         self.num_iter = len(self.ids_unique) // num_ids
         
     def __iter__(self):
-        # shuffle
-        random.shuffle(self.ids_unique)
+        # every epoch, randomize order in which ids and samples are presented
+        np.random.shuffle(self.ids_unique)
         for _id in self.id_sample_map:
-            random.shuffle(self.id_sample_map[_id])
+            np.random.shuffle(self.id_sample_map[_id])
             
         for i in range(self.num_iter):
             pos = i * self.num_samples
