@@ -12,7 +12,7 @@ class SiameseSampler(Sampler):
     :param num_samples: number of samples for each label in every batch
     :param validate: use as validation set
     :param validation_size: fraction of unique labels to use for validation
-    :param
+    :param split_seed: random seed wich controls train/val split
     """
     
     def __init__(self, dataset, num_labels, num_samples, validate=False, validation_size=0.2, split_seed=42):
