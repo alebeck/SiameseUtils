@@ -5,9 +5,10 @@ from torch.utils.data.sampler import Sampler
 class SiameseSampler(Sampler):
     """
     Samples batches containing <num_labels> labels with <num_samples> samples per label.
-    Thus, the batch size is defined as num_labels * num_samples.
+    Thus, the batch size is defined as num_labels * num_samples. Note: An epoch is completed when all
+    distinct labels - not data points - have been presented.
     
-    :param dataset: the dataset to sample over
+    :param labels: integer labels list for dataset elements, of length len(dataset)
     :param num_labels: number of distinct labels to be included in every batch
     :param num_samples: number of samples for each label in every batch
     :param validate: use as validation set
@@ -15,13 +16,10 @@ class SiameseSampler(Sampler):
     :param split_seed: random seed wich controls train/val split
     """
     
-    def __init__(self, dataset, num_labels, num_samples, validate=False, validation_size=0.2, split_seed=42):
-        super(SiameseSampler, self).__init__(dataset)
-        
-        self.dataset = dataset
+    def __init__(self, labels, num_labels, num_samples, validate=False, validation_size=0.2, split_seed=42):
         self.num_labels = num_labels
         self.num_samples = num_samples
-        self.labels = np.array(dataset.labels)
+        self.labels = np.array(labels)
 
         labels_unique = np.array(list(set(self.labels)))
         labels_unique = np.sort(labels_unique)  # enforce determinism at this point

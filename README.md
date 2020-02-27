@@ -16,7 +16,7 @@ pip install git+https://github.com/alebeck/SiameseUtils
 from torch.utils.data import DataLoader
 from siamese_utils import SiameseSampler, select_triplets
 
-train_sampler = SiameseSampler(dataset, num_labels, num_samples, validation_size=val_size)
+train_sampler = SiameseSampler(dataset_labels, num_labels, num_samples, validation_size=val_size)
 train_loader = DataLoader(dataset, batch_sampler=train_sampler)
 
 for x, labels in train_loader:
@@ -27,7 +27,5 @@ for x, labels in train_loader:
 ```
 
 ## Dataset requirements
-For the SiameseSampler to work, the dataset should have a property `labels` which is an array of length `len(dataset)` and
-which specifies the integer label of each element. The SiameseSampler automatically creates a train/val split based
-on the arguments provided to `validate` and `validation_size`. In addition, for the triplet selection strategy to work 
-properly, `dataset[i]` should return a 2-tuple consisting of the i-th element as well as the label of the i-th element.
+For the triplet selection strategy to work  properly, `dataset[i]` should return a 2-tuple consisting of the i-th
+element as well as the label of the i-th element.
